@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         COMPOSE_PROJECT_NAME = "poli2"
+        CODECOV_TOKEN = credentials('codecov-token') // Token de Codecov en Jenkins
     }
     stages {
         stage('Checkout') {
@@ -12,8 +13,19 @@ pipeline {
 
         stage('Build images') {
             steps {
-                // asegura permisos, ejecuta docker compose build
                 sh 'docker compose -f docker-compose.yml build --no-cache'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'pytest --cov=app tests/'  // Ejecuta tests y genera cobertura
+            }
+        }
+
+        stage('Upload Coverage') {
+            steps {
+                sh 'bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN'
             }
         }
 
@@ -25,8 +37,7 @@ pipeline {
 
         stage('Smoke test') {
             steps {
-                // simple test: consulta al endpoint
-                sh 'sleep 8' // espera que el servicio arranque
+                sh 'sleep 8'
                 sh 'curl --fail http://localhost:5000/ || (echo "App no respondió"; exit 1)'
             }
         }
@@ -34,10 +45,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment exitoso.'
+            echo 'Deployment exitoso y tests pasados ✅'
         }
         failure {
-            echo 'Algo falló en el pipeline.'
+            echo 'Algo falló en el pipeline ❌'
         }
     }
 }
