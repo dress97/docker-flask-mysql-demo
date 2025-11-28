@@ -10,16 +10,17 @@ def connect_db():
         try:
             connection = mysql.connector.connect(
                 host="db",
-                user="admin",
-                password="adminpass",
+                user="root",
+                password="rootpassword",
                 database="testdb"
             )
             return connection
         except mysql.connector.Error as err:
-            print(f"Error conectando a MySQL: {err}. Reintentando...")
+            print(f"❌ Error conectando a MySQL: {err}. Reintentando...")
             retries -= 1
             time.sleep(5)
     return None
+
 
 @app.route('/')
 def index():
