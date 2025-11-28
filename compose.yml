@@ -6,7 +6,7 @@ services:
     container_name: mysql_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWOpsRD: rootpassword
       MYSQL_DATABASE: testdb
     ports:
       - "3307:3306"
@@ -26,18 +26,16 @@ services:
       db:
         condition: service_healthy
 
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins
-    restart: always
-    ports:
-      - "8080:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      JAVA_OPTS: -Djenkins.install.runSetupWizard=false
-
-volumes:
-  jenkins_data:
+jenkins:
+  build:
+    context: .
+    dockerfile: Jenkins-Dockerfile
+  container_name: jenkins
+  user: root
+  privileged: true
+  ports:
+    - "8080:8080"
+    - "50000:50000"
+  volumes:
+    - jenkins_data:/var/jenkins_home
+    - /var/run/docker.sock:/var/run/docker.sock

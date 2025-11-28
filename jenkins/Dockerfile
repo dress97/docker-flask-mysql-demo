@@ -2,12 +2,25 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Instala docker CLI y docker-compose plugin (Debian/Ubuntu base)
+# Instalar dependencias para docker
 RUN apt-get update && \
-    apt-get install -y docker.io && \
-    apt-get install -y curl && \
-    curl -L "https://github.com/docker/compose-plugin/releases/download/v2.21.0/docker-compose-linux-x86_64" -o /usr/local/lib/docker/cli-plugins/docker-compose && \
-    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get install -y ca-certificates curl gnupg lsb-release && \
+    install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | \
+        gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    chmod a+r /etc/apt/keyrings/docker.gpg && \
+    echo \
+        "deb [arch=$(dpkg --print-architecture) \
+        signed-by=/etc/apt/keyrings/docker.gpg] \
+        https://download.docker.com/linux/debian \
+        $(lsb_release -cs) stable" \
+        > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && \
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Crear grupo docker y agregar jenkins
+RUN groupadd -f docker && \
+    usermod -aG docker jenkins
 
 USER jenkins
+
